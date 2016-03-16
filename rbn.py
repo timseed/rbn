@@ -1,5 +1,7 @@
 import telnetlib
 import re
+from dxcc import *
+
 
 class HamBand(object):
     """
@@ -71,6 +73,9 @@ class rbn(object):
             self._tn.write(self._password + "\n")
         print("Logged in")
         self._bandplans=HamBand()
+        self._dxcclist = dxcc_all()
+        self._dxcclist.read()
+
 
     def process_line(self,multi_line):
         """
@@ -84,7 +89,15 @@ class rbn(object):
                 fields=[a.upper() for a in re.sub('[\s]+',' ',line).split(' ')]
                 if fields[RBFields.mode]==self._mode_filter:
                     M=self._bandplans.M(fields[RBFields.freq])
-                    print(''+fields[RBFields.dx]+' '+fields[RBFields.freq]+' '+str(M))
+                    #
+                    #Find the Country
+                    #
+                    dx_ctry=self._dxcclist.find(fields[RBFields.dx])
+                    if dx_ctry is not None:
+                        print(''+fields[RBFields.dx]+' '+dx_ctry.Country_Name()+' '+fields[RBFields.freq]+' '+str(M))
+                    else:
+                        print(''+fields[RBFields.dx]+' UNK ' +fields[RBFields.freq]+' '+str(M))
+
             except IndexError:
                 pass
 
