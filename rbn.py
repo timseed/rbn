@@ -1,6 +1,47 @@
 import telnetlib
 import re
-from dxcc import *
+from dxcc import dxcc_all,dxcc
+from itertools import product
+
+class WorkedCountries(object):
+    """
+    Wrapper Class to produce a list of Countries for ALL HF Bands that you may want to Work
+    This is not: MODE specific
+    """
+
+    def __init__(self):
+        hb=HamBand()
+        d=dxcc_all()
+        Status=[False]
+
+        Status=[False]
+        self.Countries_Band_To_Work={}
+
+        for c in d.CountryList():
+            self.Countries_Band_To_Work[c]={}
+            for b in hb.Band:
+                for s in Status:
+                    self.Countries_Band_To_Work[c][b]={}
+                    self.Countries_Band_To_Work[c][b]={'status':s}
+
+class ContestCountries(WorkedCountries):
+    """
+    Wrapper class for Contest Work
+    Assumes you are only trying to work the Contest Bands per Countries
+    """
+
+    def __init__(self):
+        hb=HamBand()
+        d=dxcc_all()
+        Status=[False]
+
+        self.Countries_Band_To_Work={}
+        for c in d.CountryList():
+            self.Countries_Band_To_Work[c]={}
+            for b in hb.ContestBand:
+                for s in Status:
+                    self.Countries_Band_To_Work[c][b]={}
+                    self.Countries_Band_To_Work[c][b]={'status':s}
 
 
 class HamBand(object):
@@ -8,8 +49,9 @@ class HamBand(object):
     COnvert from Khz to Meters in Ham Speak terms not literally
     """
     def __init__(self):
-        Band=[160,80,60,40,20,18,15,12,10]
-        Freq=[(1800,2000),
+        self.Band=[160,80,60,40,20,18,15,12,10]
+        self.ContestBand=[80,40,20,15,10]
+        self.Freq=[(1800,2000),
               (3500,4000),
               (5000,5100),
               (7000,7300),
@@ -17,8 +59,7 @@ class HamBand(object):
               (18068,18168),
               (2100,21450),
               (24890,24990),(2800,29700)]
-        self._band_plan=list(zip(Band,Freq))
-
+        self._band_plan=list(zip(self.Band,self.Freq))
 
     def M(self,Khz):
         '''
@@ -28,7 +69,6 @@ class HamBand(object):
 
         Khz=float(Khz)
         Khz=int(Khz)
-
 
         rv=None
         for b in self._band_plan:
@@ -76,7 +116,6 @@ class rbn(object):
         self._dxcclist = dxcc_all()
         self._dxcclist.read()
 
-
     def process_line(self,multi_line):
         """
         Break the Telnet RBN Line into Fields so we can process them easier
@@ -118,5 +157,7 @@ class rbn(object):
 if __name__ == "__main__":
         r=rbn()
         r.loop()
+        wc=WorkedCountries()
+        cc=ContestCountries()
 
 
