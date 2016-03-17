@@ -2,6 +2,11 @@ import telnetlib
 import re
 from dxcc import dxcc_all,dxcc
 from itertools import product
+import logging
+
+
+logging.basicConfig(format="%(asctime)s - File: %(filename)s - Line: %(lineno)d - %(message)s", level=logging.INFO)
+
 
 class WorkedCountries(object):
     """
@@ -42,7 +47,6 @@ class ContestCountries(WorkedCountries):
                 for s in Status:
                     self.Countries_Band_To_Work[c][b]={}
                     self.Countries_Band_To_Work[c][b]={'status':s}
-
 
 class HamBand(object):
     """
@@ -85,6 +89,7 @@ class telnet3(telnetlib.Telnet):
         def read_until(self,expected,timeout=None):
             expected = bytes(expected, encoding='utf-8')
             received = super(telnet3,self).read_until(expected,timeout)
+            logging.info('read_util length ='+str(len(received)))
             return str(received, encoding='utf-8')
 
         def write(self,buffer):
@@ -108,13 +113,15 @@ class rbn(object):
         self._tn = telnet3(self._node,self._port)
         self._tn.read_until("Please enter your call: ")
         self._tn.write(self._username + "\n")
+        logging.info("logged in")
         if self._password:
             self._tn.read_until("Password: ")
             self._tn.write(self._password + "\n")
-        print("Logged in")
+        logging.info("logged in")
         self._bandplans=HamBand()
         self._dxcclist = dxcc_all()
         self._dxcclist.read()
+        logging.info("rbn class initialized")
 
     def process_line(self,multi_line):
         """
@@ -122,9 +129,9 @@ class rbn(object):
         :param multi_line:
         :return:
         """
+        logging.info("process_line")
         for line in multi_line.split('\n'):
             try:
-
                 fields=[a.upper() for a in re.sub('[\s]+',' ',line).split(' ')]
                 if fields[RBFields.mode]==self._mode_filter:
                     M=self._bandplans.M(fields[RBFields.freq])
@@ -138,6 +145,7 @@ class rbn(object):
                         print(''+fields[RBFields.dx]+' UNK ' +fields[RBFields.freq]+' '+str(M))
 
             except IndexError:
+                logging.error("An Error Occurred")
                 pass
 
     def loop(self,lines=10):
@@ -146,11 +154,15 @@ class rbn(object):
         :param lines:
         :return:
         """
+        logging.info("running loop")
         while lines>0:
-            a=self._tn.read_until('ZZZ',1)
+            a=self._tn.read_until('ZZZ',2)
             if len(a)>0:
+                logging.info("Got some data")
                 #print(''+a,end='')
                 self.process_line(a)
+            else:
+                logging.warning('No Data received')
             lines=lines-1
 
 
