@@ -5,7 +5,7 @@ from itertools import product
 import logging
 
 
-logging.basicConfig(format="%(asctime)s - File: %(filename)s - Line: %(lineno)d - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - File: %(filename)s - Line: %(lineno)d - %(message)s", level=logging.WARNING)
 
 
 class WorkedCountries(object):
@@ -90,9 +90,11 @@ class telnet3(telnetlib.Telnet):
             expected = bytes(expected, encoding='utf-8')
             received = super(telnet3,self).read_until(expected,timeout)
             logging.info('read_util length ='+str(len(received)))
+            logging.info('data=>'+str(received,encoding='utf-8'))
             return str(received, encoding='utf-8')
 
         def write(self,buffer):
+            logging.info('write data =>'+buffer+'<=')
             buffer = bytes(buffer, encoding='utf-8')
             super(telnet3,self).write(buffer)
 
@@ -105,6 +107,9 @@ class telnet3(telnetlib.Telnet):
 class rbn(object):
 
     def __init__(self,node="telnet.reversebeacon.net",port="7000",username='A45WG',password=None,mode_filter='CW'):
+        self._bandplans=HamBand()
+        self._dxcclist = dxcc_all()
+        self._dxcclist.read()
         self._node=node
         self._port=port
         self._username=username
@@ -113,14 +118,12 @@ class rbn(object):
         self._tn = telnet3(self._node,self._port)
         self._tn.read_until("Please enter your call: ")
         self._tn.write(self._username + "\n")
+        self._tn.read_until("\r")
         logging.info("logged in")
-        if self._password:
+        if self._password is not None:
             self._tn.read_until("Password: ")
             self._tn.write(self._password + "\n")
         logging.info("logged in")
-        self._bandplans=HamBand()
-        self._dxcclist = dxcc_all()
-        self._dxcclist.read()
         logging.info("rbn class initialized")
 
     def process_line(self,multi_line):
@@ -143,9 +146,7 @@ class rbn(object):
                         print(''+fields[RBFields.dx]+' '+dx_ctry.Country_Name()+' '+fields[RBFields.freq]+' '+str(M))
                     else:
                         print(''+fields[RBFields.dx]+' UNK ' +fields[RBFields.freq]+' '+str(M))
-
             except IndexError:
-                logging.error("An Error Occurred")
                 pass
 
     def loop(self,lines=10):
@@ -156,7 +157,7 @@ class rbn(object):
         """
         logging.info("running loop")
         while lines>0:
-            a=self._tn.read_until('ZZZ',2)
+            a=self._tn.read_until('ZZZ',1)
             if len(a)>0:
                 logging.info("Got some data")
                 #print(''+a,end='')
