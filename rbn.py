@@ -5,7 +5,6 @@ from itertools import product
 import logging
 
 
-logging.basicConfig(format="%(asctime)s - File: %(filename)s - Line: %(lineno)d - %(message)s", level=logging.WARNING)
 
 
 class WorkedCountries(object):
@@ -15,6 +14,7 @@ class WorkedCountries(object):
     """
 
     def __init__(self):
+        self.logger=logging.getLogger(__name__)
         hb=HamBand()
         d=dxcc_all()
         Status=[False]
@@ -36,6 +36,7 @@ class ContestCountries(WorkedCountries):
     """
 
     def __init__(self):
+        self.logger=logging.getLogger(__name__)
         hb=HamBand()
         d=dxcc_all()
         Status=[False]
@@ -53,16 +54,19 @@ class HamBand(object):
     COnvert from Khz to Meters in Ham Speak terms not literally
     """
     def __init__(self):
-        self.Band=[160,80,60,40,20,18,15,12,10]
+        self.logger=logging.getLogger(__name__)
+        self.Band=[160,80,60,30,40,20,18,15,12,10]
         self.ContestBand=[80,40,20,15,10]
         self.Freq=[(1800,2000),
               (3500,4000),
               (5000,5100),
               (7000,7300),
+              (10100,10150),
               (14000,14350),
               (18068,18168),
               (2100,21450),
-              (24890,24990),(2800,29700)]
+              (24890,24990),
+                   (2800,29700)]
         self._band_plan=list(zip(self.Band,self.Freq))
 
     def M(self,Khz):
@@ -80,6 +84,14 @@ class HamBand(object):
                 rv=b[0]
                 break
         return rv
+
+    def Index(self,M):
+        "Return the INDEX of the Band"
+        if M in self.Band:
+            return self.Band.index(M)
+        else:
+            return -1
+
 
 class RBFields:
     filler1,filler2,skimmer,freq,dx,mode,sn,filler3,wpm,filler4,msg,when = range(12)
