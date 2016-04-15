@@ -35,4 +35,7 @@ The data object will be a namedTuple
     Person('A45wg','Oman','18080.2','17')
 
 
-     
+#Stats
+The stats functionality has been removed and placed in another module.
+
+ 

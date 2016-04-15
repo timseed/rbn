@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='RBN',
-    version='1.1.1',
+    version='1.1.4',
     packages=[''],
     url='',
     license='Public',

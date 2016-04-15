@@ -6,49 +6,6 @@ import logging
 import collections
 
 
-class WorkedCountries(object):
-    """
-    Wrapper Class to produce a list of Countries for ALL HF Bands that you may want to Work
-    This is not: MODE specific
-    """
-
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        hb = HamBand()
-        d = dxcc_all()
-        Status = [False]
-
-        Status = [False]
-        self.Countries_Band_To_Work = {}
-
-        for c in d.CountryList():
-            self.Countries_Band_To_Work[c] = {}
-            for b in hb.Band:
-                for s in Status:
-                    self.Countries_Band_To_Work[c][b] = {}
-                    self.Countries_Band_To_Work[c][b] = {'status': s}
-
-
-class ContestCountries(WorkedCountries):
-    """
-    Wrapper class for Contest Work
-    Assumes you are only trying to work the Contest Bands per Countries
-    """
-
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        hb = HamBand()
-        d = dxcc_all()
-        Status = [False]
-
-        self.Countries_Band_To_Work = {}
-        for c in d.CountryList():
-            self.Countries_Band_To_Work[c] = {}
-            for b in hb.ContestBand:
-                for s in Status:
-                    self.Countries_Band_To_Work[c][b] = {}
-                    self.Countries_Band_To_Work[c][b] = {'status': s}
-
 
 class HamBand(object):
     """
@@ -57,7 +14,7 @@ class HamBand(object):
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self.Band = [160, 80, 60, 30, 40, 20, 18, 15, 12, 10]
+        self.Band = [160, 80, 60, 40, 30, 20, 18, 15, 12, 10]
         self.ContestBand = [80, 40, 20, 15, 10]
         self.Freq = [(1800, 2000),
                      (3500, 4000),
@@ -121,7 +78,7 @@ class telnet3(telnetlib.Telnet):
 
 class rbn(object):
 
-    rbn_tup = collections.namedtuple('Call', 'Country', 'Freq', 'Band')
+    rbn_tup=collections.namedtuple('rbn_tup','Skimmer Call Country Freq Band SigLevel')
 
     def __init__(self, node="telnet.reversebeacon.net", port="7000", username='A45WG', password=None, mode_filter='CW'):
         self.logger = logging.getLogger(__name__)
@@ -164,11 +121,22 @@ class rbn(object):
                     if dx_ctry is not None:
                         self.logger.debug('' + fields[RBFields.dx] + ' ' + dx_ctry.Country_Name() + ' ' + fields[
                             RBFields.freq] + ' ' + str(M))
-                        next_beacon = (fields[RBFields.dx], dx_ctry, fields[RBFields.freq], str(M))
+                        next_beacon = rbn.rbn_tup(fields[RBFields.skimmer],
+                                       fields[RBFields.dx],
+                                       dx_ctry.Country_Name(),
+                                       fields[RBFields.freq],
+                                       str(M),
+                                       fields[RBFields.sn])
                         spots.append(next_beacon)
                     else:
                         self.logger.debug('' + fields[RBFields.dx] + ' UNK ' + fields[RBFields.freq] + ' ' + str(M))
-                        next_beacon = rbn.rbn_tup(fields[RBFields.dx], 'UNK', fields[RBFields.freq], str(M))
+                        next_beacon = rbn.rbn_tup(fields[RBFields.skimmer],
+                                                  fields[RBFields.dx],
+                                                  'UNK',
+                                                  fields[RBFields.freq],
+                                                  str(M),
+                                                  fields[RBFields.sn]
+                                                  )
                         spots.append(next_beacon)
             except IndexError:
                 pass
