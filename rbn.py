@@ -90,16 +90,19 @@ class rbn(object):
         self._username = username
         self._password = password
         self._mode_filter = mode_filter
-        self._tn = telnet3(self._node, self._port)
-        self._tn.read_until("Please enter your call: ")
-        self._tn.write(self._username + "\n")
-        self._tn.read_until("\r")
-        self.logger.info("logged in")
-        if self._password is not None:
-            self._tn.read_until("Password: ")
-            self._tn.write(self._password + "\n")
-        self.logger.info("logged in")
-        self.logger.info("rbn class initialized")
+        try:
+            self._tn = telnet3(self._node, self._port)
+            self._tn.read_until("Please enter your call: ")
+            self._tn.write(self._username + "\n")
+            self._tn.read_until("\r")
+            self.logger.info("logged in")
+            if self._password is not None:
+                self._tn.read_until("Password: ")
+                self._tn.write(self._password + "\n")
+            self.logger.info("logged in")
+            self.logger.info("rbn class initialized")
+        except Exception as e:
+            self.logger.error('There has been an error starting rbn {}'.format(str(e)))
 
     def process_line(self, multi_line):
         """
