@@ -1,10 +1,9 @@
-import telnetlib
-import re
-from dxcc import dxcc_all, dxcc
-from itertools import product
-import logging
 import collections
+import logging
+import re
+import telnetlib
 
+from Ham.dxcc import dxcc, dxcc_all
 
 
 class HamBand(object):
